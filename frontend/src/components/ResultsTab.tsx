@@ -1,5 +1,5 @@
 import React from 'react';
-
+import './ResultsTab.css';
 interface ProcessedData {
   data: any[];
   highlight_rows: number[];

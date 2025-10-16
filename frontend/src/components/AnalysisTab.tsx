@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import './AnalysisTab.css';
 interface Replacement {
   old: string;
   new: string;

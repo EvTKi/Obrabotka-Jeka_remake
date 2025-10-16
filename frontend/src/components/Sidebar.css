@@ -50,3 +50,9 @@
   margin-bottom: 0.25rem;
   font-size: 0.9rem;
 }
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+}
