@@ -1,0 +1,170 @@
+/* Streamlit Theme Styles */
+:root {
+  --streamlit-primary: #1a3d6d;
+  --streamlit-primary-hover: #2c5aa0;
+  --streamlit-success: #d4edda;
+  --streamlit-success-border: #c3e6cb;
+  --streamlit-warning: #fff3cd;
+  --streamlit-warning-border: #ffeaa7;
+  --streamlit-info: #d1ecf1;
+  --streamlit-info-border: #bee5eb;
+  --streamlit-text-primary: #1a3d6d;
+  --streamlit-text-secondary: #666;
+  --streamlit-border: #e6e9ef;
+  --streamlit-bg: #f8f9fa;
+}
+
+/* Main container exactly like Streamlit */
+.main-container {
+  background-color: var(--streamlit-bg);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Header exactly like Streamlit */
+.streamlit-header {
+  text-align: center;
+  padding: 2rem 1rem 1rem 1rem;
+  background-color: var(--streamlit-bg);
+}
+
+.streamlit-header h1 {
+  color: var(--streamlit-text-primary);
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.streamlit-subtitle {
+  color: var(--streamlit-text-secondary);
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 400;
+}
+
+.streamlit-divider {
+  height: 1px;
+  background: var(--streamlit-border);
+  margin: 0;
+}
+
+/* Tabs exactly like Streamlit */
+.streamlit-tabs {
+  display: flex;
+  background: white;
+  border-bottom: 1px solid var(--streamlit-border);
+  padding: 0;
+  margin: 0;
+}
+
+.streamlit-tab {
+  flex: 1;
+  padding: 1rem 2rem;
+  border: none;
+  background: none;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  color: var(--streamlit-text-secondary);
+  font-weight: 500;
+}
+
+.streamlit-tab:hover {
+  background-color: var(--streamlit-bg);
+  color: var(--streamlit-text-primary);
+}
+
+.streamlit-tab.active {
+  color: var(--streamlit-text-primary);
+  border-bottom-color: var(--streamlit-text-primary);
+  font-weight: 600;
+}
+
+/* Message boxes exactly like Streamlit */
+.streamlit-info-box {
+  background-color: var(--streamlit-info);
+  color: #0c5460;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--streamlit-info-border);
+  margin: 10px 0;
+}
+
+.streamlit-success-box {
+  background-color: var(--streamlit-success);
+  color: #155724;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--streamlit-success-border);
+  margin: 10px 0;
+}
+
+.streamlit-warning-box {
+  background-color: var(--streamlit-warning);
+  color: #856404;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--streamlit-warning-border);
+  margin: 10px 0;
+}
+
+/* Buttons exactly like Streamlit */
+.streamlit-button {
+  background-color: var(--streamlit-primary) !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 24px !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: background-color 0.3s ease !important;
+}
+
+.streamlit-button:hover {
+  background-color: var(--streamlit-primary-hover) !important;
+}
+
+.streamlit-button:disabled {
+  background-color: #6c757d !important;
+  cursor: not-allowed !important;
+}
+
+/* Metric cards exactly like Streamlit */
+.streamlit-metric-card {
+  background-color: white;
+  padding: 12px;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.streamlit-metric-label {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.streamlit-metric-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--streamlit-text-primary);
+}
+
+/* Match styles exactly like Streamlit */
+.streamlit-match-exact {
+  background-color: var(--streamlit-success);
+}
+
+.streamlit-match-suggested {
+  background-color: var(--streamlit-warning);
+}
+
+.streamlit-match-none {
+  background-color: #f8d7da;
+}
+
+.streamlit-highlight-row {
+  background-color: #ffff00 !important;
+}

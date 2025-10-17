@@ -1,23 +1,36 @@
-.analysis-tab h3 {
+/* src/components/AnalysisTab.css */
+.analysis-tab {
+  padding: 0;
+}
+
+.streamlit-section {
+  background: white;
+  border-radius: 10px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.streamlit-section h3 {
   color: #1a3d6d;
   margin-bottom: 1rem;
   font-size: 1.4rem;
   font-weight: 600;
 }
 
-.analysis-tab h4 {
+.streamlit-section h4 {
   color: #1a3d6d;
   margin-bottom: 0.75rem;
   font-size: 1.1rem;
   font-weight: 600;
 }
 
-.analysis-tab p {
+.streamlit-section p {
   color: #666;
   margin-bottom: 1.5rem;
 }
 
-/* File upload styles */
+/* File upload styles exactly like Streamlit */
 .file-upload-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -44,6 +57,7 @@
   background: #f8f9fa;
   font-size: 0.9rem;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .file-input:hover {
@@ -57,100 +71,49 @@
   font-size: 0.9rem;
 }
 
-/* Form elements */
-.form-select {
+/* Form elements exactly like Streamlit */
+.settings-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 1.5rem 0;
+}
+
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.setting-group label {
+  color: #1a3d6d;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.streamlit-input {
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 0.9rem;
   background: white;
+  transition: border-color 0.3s ease;
 }
 
-.form-select.multiple {
-  height: 120px;
+.streamlit-input:focus {
+  outline: none;
+  border-color: #1a3d6d;
+  box-shadow: 0 0 0 2px rgba(26, 61, 109, 0.1);
 }
 
 .help-text {
   font-size: 0.85rem;
   color: #6c757d;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
   margin-bottom: 0;
 }
 
-/* Preview tables */
-.preview-table {
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin: 1rem 0;
-}
-
-.preview-table p {
-  color: #6c757d;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-}
-
-.preview-table table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.preview-table th,
-.preview-table td {
-  padding: 0.5rem;
-  border: 1px solid #dee2e6;
-  text-align: left;
-  font-size: 0.85rem;
-}
-
-.preview-table th {
-  background: #e9ecef;
-  font-weight: 600;
-}
-
-/* Analysis columns */
-.analysis-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1.5rem;
-  margin: 1.5rem 0;
-}
-
-.analysis-column h4 {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.analysis-table {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 8px;
-}
-
-.analysis-table table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  font-size: 0.8rem;
-}
-
-.analysis-table th,
-.analysis-table td {
-  padding: 0.5rem;
-  border: 1px solid #dee2e6;
-  text-align: left;
-}
-
-.analysis-table th {
-  background: #e9ecef;
-  font-weight: 600;
-}
-
-/* Replacements */
+/* Replacements exactly like Streamlit */
 .replacements-container {
   margin: 1.5rem 0;
 }
@@ -174,87 +137,97 @@
 
 .replacement-input {
   flex: 1;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  transition: border-color 0.3s ease;
-}
-
-.replacement-input:focus {
-  outline: none;
-  border-color: #1a3d6d;
-  box-shadow: 0 0 0 2px rgba(26, 61, 109, 0.1);
 }
 
 .replacement-arrow {
   color: #666;
   font-weight: bold;
+  font-size: 1.1rem;
 }
 
-.remove-replacement-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0.5rem;
-  color: #dc3545;
-  transition: color 0.3s ease;
+.remove-button {
+  padding: 0.5rem !important;
+  background: #dc3545 !important;
 }
 
-.remove-replacement-btn:hover {
-  color: #c82333;
+.remove-button:hover {
+  background: #c82333 !important;
 }
 
-.add-replacement-btn {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.3s ease;
+.streamlit-button.secondary {
+  background-color: #6c757d !important;
 }
 
-.add-replacement-btn:hover {
-  background: #5a6268;
+.streamlit-button.secondary:hover {
+  background-color: #5a6268 !important;
 }
 
-/* Action buttons */
+/* Action buttons exactly like Streamlit */
 .action-section {
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e9ecef;
+  text-align: center;
 }
 
-.analyze-btn, .confirm-btn {
+.streamlit-button.primary {
   width: 100%;
   padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
   font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
-.analyze-btn.primary, .confirm-btn.primary {
-  background-color: #1a3d6d;
-  color: white;
-}
-
-.analyze-btn.primary:hover:not(:disabled),
-.confirm-btn.primary:hover:not(:disabled) {
-  background-color: #2c5aa0;
-}
-
-.analyze-btn:disabled {
-  background-color: #6c757d;
+.streamlit-button.loading {
+  opacity: 0.7;
   cursor: not-allowed;
 }
 
-/* Matching section */
+.confirm-button {
+  margin-top: 1.5rem;
+}
+
+/* Analysis tables exactly like Streamlit */
+.analysis-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.analysis-column h4 {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.analysis-table {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.analysis-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 0.8rem;
+}
+
+.analysis-table th,
+.analysis-table td {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  text-align: left;
+}
+
+.analysis-table th {
+  background: #e9ecef;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+
+/* Matching section exactly like Streamlit */
 .matching-section {
   margin: 1.5rem 0;
 }
@@ -266,27 +239,46 @@
   border: 1px solid #dee2e6;
 }
 
-.match-candidates {
-  margin-top: 0.5rem;
-  margin-left: 1.5rem;
+.match-original {
+  margin-bottom: 0.75rem;
+  font-weight: 600;
 }
 
-.match-candidates label {
-  display: block;
+.match-candidates {
+  margin-left: 1rem;
+}
+
+.candidate-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
   padding: 0.5rem;
   background: white;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.match-candidates label:hover {
+.candidate-option:hover {
   background: #f8f9fa;
 }
 
-/* Responsive */
+.candidate-option input[type="checkbox"] {
+  margin: 0;
+}
+
+.candidate-text {
+  flex: 1;
+}
+
+/* Responsive design */
 @media (max-width: 1200px) {
   .analysis-columns {
+    grid-template-columns: 1fr;
+  }
+  
+  .settings-columns {
     grid-template-columns: 1fr;
   }
 }
@@ -307,5 +299,9 @@
   
   .replacement-arrow {
     transform: rotate(90deg);
+  }
+  
+  .streamlit-section {
+    padding: 1.5rem;
   }
 }

@@ -1,38 +1,40 @@
+// src/App.tsx
 import React, { useState } from 'react';
 import AnalysisTab from './components/AnalysisTab';
 import ResultsTab from './components/ResultsTab';
 import Sidebar from './components/Sidebar';
 import './App.css';
+import './styles/streamlit-theme.css';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'analysis' | 'results'>('analysis');
   const [processedData, setProcessedData] = useState<any>(null);
 
   return (
-    <div className="main">
-      {/* Боковая панель */}
+    <div className="main-container">
+      {/* Боковая панель как в Streamlit */}
       <Sidebar />
       
       {/* Основной контент */}
       <div className="main-content">
-        {/* Заголовок как в Streamlit */}
-        <div className="header-container">
+        {/* Заголовок точно как в Streamlit */}
+        <div className="streamlit-header">
           <h1>🧩 Умное сопоставление ролей ТУ/ТВ/ИВ</h1>
-          <p className="subtitle">С поддержкой ролей (И)/(ИВ) → префикс ИВ (Информационное ведение)</p>
+          <p className="streamlit-subtitle">С поддержкой ролей (И)/(ИВ) → префикс ИВ (Информационное ведение)</p>
         </div>
 
-        <div className="divider"></div>
+        <div className="streamlit-divider"></div>
 
-        {/* Вкладки как в Streamlit */}
-        <div className="tabs-container">
+        {/* Вкладки точно как в Streamlit */}
+        <div className="streamlit-tabs">
           <button 
-            className={`tab-button ${activeTab === 'analysis' ? 'active' : ''}`}
+            className={`streamlit-tab ${activeTab === 'analysis' ? 'active' : ''}`}
             onClick={() => setActiveTab('analysis')}
           >
             📁 Настройка
           </button>
           <button 
-            className={`tab-button ${activeTab === 'results' ? 'active' : ''}`}
+            className={`streamlit-tab ${activeTab === 'results' ? 'active' : ''}`}
             onClick={() => setActiveTab('results')}
           >
             📊 Результаты

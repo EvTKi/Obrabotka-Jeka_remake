@@ -1,6 +1,12 @@
+// src/components/AnalysisTab.tsx
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../hooks/useApi';
 import { AnalysisRequest } from '../services/api';
+import { 
+  InfoBox, 
+  // WarningBox, // TODO: будет использоваться позже
+  // SuccessBox  // TODO: будет использоваться позже  
+} from './MessageBoxes';
 import './AnalysisTab.css';
 
 interface Replacement {
@@ -25,7 +31,7 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
     IV: {}
   });
 
-  // Настройки по умолчанию (можно будет выбирать из выпадающих списков)
+  // Настройки по умолчанию (временные, потом будут динамические)
   const [settings, setSettings] = useState({
     controlCol: 'Управление',
     operationCols: ['Ведение'],
@@ -132,7 +138,8 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
       value: match.original,
       role: match.matched,
       found: true,
-      type: match.type
+      type: match.type,
+      uid: match.uid
     }));
 
     // Ожидающие подтверждения
@@ -149,8 +156,8 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
 
   return (
     <div className="analysis-tab">
-      {/* 📥 Загрузите файлы */}
-      <div className="section">
+      {/* 📥 Загрузите файлы - точно как в Streamlit */}
+      <div className="streamlit-section">
         <h3>📥 Загрузите файлы</h3>
         
         <div className="file-upload-section">
@@ -162,7 +169,11 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
               onChange={(e) => setSurveyFile(e.target.files?.[0] || null)}
               className="file-input"
             />
-            {surveyFile && <div className="file-status">✅ {surveyFile.name}</div>}
+            {surveyFile && (
+              <div className="file-status">
+                ✅ {surveyFile.name}
+              </div>
+            )}
           </div>
           
           <div className="file-upload">
@@ -173,40 +184,67 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
               onChange={(e) => setRolesFile(e.target.files?.[0] || null)}
               className="file-input"
             />
-            {rolesFile && <div className="file-status">✅ {rolesFile.name}</div>}
+            {rolesFile && (
+              <div className="file-status">
+                ✅ {rolesFile.name}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {surveyFile && rolesFile ? (
+      {!surveyFile || !rolesFile ? (
+        <InfoBox>
+          <p>Пожалуйста, загрузите оба файла для продолжения.</p>
+        </InfoBox>
+      ) : (
         <>
-          {/* Базовые настройки (упрощенно) */}
-          <div className="section">
+          {/* ⚙️ Настройки обработки - точно как в Streamlit */}
+          <div className="streamlit-section">
             <h3>⚙️ Настройки обработки</h3>
-            <div className="columns">
-              <div className="column">
+            <div className="settings-columns">
+              <div className="setting-group">
                 <label>Столбец управления:</label>
                 <input 
                   type="text"
                   value={settings.controlCol}
                   onChange={(e) => setSettings(prev => ({...prev, controlCol: e.target.value}))}
-                  className="form-select"
+                  className="streamlit-input"
+                  placeholder="Например: Управление"
                 />
+                <div className="help-text">Столбец с признаком 'Управление'</div>
               </div>
-              <div className="column">
+              <div className="setting-group">
                 <label>Столбец ролей:</label>
                 <input 
                   type="text"
                   value={settings.roleCol}
                   onChange={(e) => setSettings(prev => ({...prev, roleCol: e.target.value}))}
-                  className="form-select"
+                  className="streamlit-input"
+                  placeholder="Например: Роль"
                 />
+                <div className="help-text">Столбец с наименованием роли</div>
               </div>
+            </div>
+            
+            <div className="setting-group">
+              <label>Столбцы ведения:</label>
+              <input 
+                type="text"
+                value={settings.operationCols.join(', ')}
+                onChange={(e) => setSettings(prev => ({
+                  ...prev, 
+                  operationCols: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
+                }))}
+                className="streamlit-input"
+                placeholder="Например: Ведение, Операции"
+              />
+              <div className="help-text">Столбцы с признаком 'Ведение' (через запятую)</div>
             </div>
           </div>
 
-          {/* Замены */}
-          <div className="section">
+          {/* 🔁 Замены перед обработкой - точно как в Streamlit */}
+          <div className="streamlit-section">
             <h3>🔁 Замены перед обработкой</h3>
             <p>Укажите, какие значения нужно заменить перед сопоставлением</p>
             
@@ -219,7 +257,7 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
                       placeholder="Заменить"
                       value={replacement.old}
                       onChange={(e) => handleReplacementChange(index, 'old', e.target.value)}
-                      className="replacement-input"
+                      className="streamlit-input replacement-input"
                     />
                     <span className="replacement-arrow">→</span>
                     <input
@@ -227,14 +265,14 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
                       placeholder="На"
                       value={replacement.new}
                       onChange={(e) => handleReplacementChange(index, 'new', e.target.value)}
-                      className="replacement-input"
+                      className="streamlit-input replacement-input"
                     />
                   </div>
                   {replacements.length > 1 && (
                     <button 
                       type="button"
                       onClick={() => handleRemoveReplacement(index)}
-                      className="remove-replacement-btn"
+                      className="streamlit-button remove-button"
                     >
                       ❌
                     </button>
@@ -246,36 +284,36 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
             <button 
               type="button" 
               onClick={handleAddReplacement}
-              className="add-replacement-btn"
+              className="streamlit-button secondary"
             >
               ➕ Добавить замену
             </button>
           </div>
 
-          {/* Кнопка анализа */}
+          {/* 🔍 Кнопка анализа - точно как в Streamlit */}
           <div className="action-section">
             <button 
               onClick={handleAnalyze}
               disabled={loading}
-              className="analyze-btn primary"
+              className={`streamlit-button primary ${loading ? 'loading' : ''}`}
             >
               {loading ? '🔍 Анализ...' : '🔍 Анализ и подготовка сопоставления'}
             </button>
           </div>
 
-          {/* Результаты анализа */}
+          {/* 📊 Результаты анализа - точно как в Streamlit */}
           {analysisData && (
-            <div className="section">
-              <h3>🔍 Результаты анализа</h3>
+            <div className="streamlit-section">
+              <h3>📊 Результаты анализа</h3>
               <p>Уникальные значения из исходных данных и их сопоставление:</p>
               
               <div className="analysis-columns">
                 {(['TU', 'TV', 'IV'] as const).map(category => (
                   <div key={category} className="analysis-column">
                     <h4>
-                      {category === 'TU' && 'Управление (ТУ)'}
-                      {category === 'TV' && 'Ведение (ТВ)'}
-                      {category === 'IV' && 'Информационное ведение (ИВ)'}
+                      {category === 'TU' && '🔹 Управление (ТУ)'}
+                      {category === 'TV' && '🔹 Ведение (ТВ)'}
+                      {category === 'IV' && '🔹 Информационное ведение (ИВ)'}
                     </h4>
                     <div className="analysis-table">
                       <table>
@@ -289,7 +327,13 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
                         </thead>
                         <tbody>
                           {getAnalysisTableData(category).map((item: any, index) => (
-                            <tr key={index} className={item.found ? 'match-exact' : 'match-none'}>
+                            <tr 
+                              key={index} 
+                              className={
+                                item.found ? 'streamlit-match-exact' : 
+                                item.candidates ? 'streamlit-match-suggested' : 'streamlit-match-none'
+                              }
+                            >
                               <td>{item.value}</td>
                               <td>{item.role}</td>
                               <td>{item.found ? '✅ Да' : '❌ Нет'}</td>
@@ -303,10 +347,10 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
                 ))}
               </div>
 
-              {/* Выбор сопоставлений */}
+              {/* 🤔 Выбор сопоставлений - точно как в Streamlit */}
               {analysisData.pending_matches && 
                 Object.values(analysisData.pending_matches).some((arr: any) => arr.length > 0) && (
-                <div className="section">
+                <div className="streamlit-section">
                   <h3>🤔 Требуется подтверждение сопоставлений</h3>
                   <p>Найдены неопределенные совпадения. Пожалуйста, выберите правильный вариант:</p>
                   
@@ -314,24 +358,25 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
                     analysisData.pending_matches[category]?.length > 0 && (
                       <div key={category} className="matching-section">
                         <h4>
-                          {category === 'TU' && 'Управление (ТУ)'}
-                          {category === 'TV' && 'Ведение (ТВ)'}
-                          {category === 'IV' && 'Информационное ведение (ИВ)'}
+                          {category === 'TU' && '🔹 Управление (ТУ)'}
+                          {category === 'TV' && '🔹 Ведение (ТВ)'}
+                          {category === 'IV' && '🔹 Информационное ведение (ИВ)'}
                         </h4>
                         {analysisData.pending_matches[category].map((match: any, index: number) => (
-                          <div key={index} className="match-option match-suggested">
-                            <label>
+                          <div key={index} className="streamlit-match-suggested match-option">
+                            <div className="match-original">
                               <strong>Исходное значение:</strong> {match.original}
-                            </label>
+                            </div>
                             <div className="match-candidates">
                               {match.candidates.map((candidate: any, candIndex: number) => (
-                                <label key={candIndex}>
+                                <label key={candIndex} className="candidate-option">
                                   <input 
-                                    type="radio" 
-                                    name={`${category}_${index}`}
+                                    type="checkbox"
                                     onChange={() => handleUserChoice(category, match.original, candidate.role_name)}
                                   />
-                                  ✅ {candidate.role_name} ({candidate.score}% совпадения)
+                                  <span className="candidate-text">
+                                    ✅ {candidate.role_name} ({candidate.score}% совпадения)
+                                  </span>
                                 </label>
                               ))}
                             </div>
@@ -343,19 +388,28 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
                   
                   <button 
                     onClick={handleProcess}
-                    className="confirm-btn primary"
+                    className="streamlit-button primary confirm-button"
                   >
                     ✅ Подтвердить выбор и обработать
+                  </button>
+                </div>
+              )}
+
+              {/* Если нет предложений для выбора */}
+              {analysisData.pending_matches && 
+                Object.values(analysisData.pending_matches).every((arr: any) => arr.length === 0) && (
+                <div className="action-section">
+                  <button 
+                    onClick={handleProcess}
+                    className="streamlit-button primary"
+                  >
+                    ✅ Обработать без выбора
                   </button>
                 </div>
               )}
             </div>
           )}
         </>
-      ) : (
-        <div className="info-box">
-          <p>Пожалуйста, загрузите оба файла для продолжения.</p>
-        </div>
       )}
     </div>
   );
