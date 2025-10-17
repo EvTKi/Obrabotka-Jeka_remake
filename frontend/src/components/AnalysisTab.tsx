@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useApi } from '../hooks/useApi';
+import { AnalysisRequest } from '../services/api';
 import './AnalysisTab.css';
+
 interface Replacement {
   old: string;
   new: string;
@@ -10,11 +13,32 @@ interface AnalysisTabProps {
 }
 
 const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
+  const { loading, error, analyzeFiles, clearError } = useApi();
+  
   const [surveyFile, setSurveyFile] = useState<File | null>(null);
   const [rolesFile, setRolesFile] = useState<File | null>(null);
   const [replacements, setReplacements] = useState<Replacement[]>([{ old: '', new: '' }]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [userChoices, setUserChoices] = useState<Record<string, Record<string, string>>>({
+    TU: {},
+    TV: {},
+    IV: {}
+  });
+
+  // Настройки по умолчанию (можно будет выбирать из выпадающих списков)
+  const [settings, setSettings] = useState({
+    controlCol: 'Управление',
+    operationCols: ['Ведение'],
+    roleCol: 'Роль',
+    uidCol: 'UID'
+  });
+
+  useEffect(() => {
+    if (error) {
+      alert(`Ошибка: ${error}`);
+      clearError();
+    }
+  }, [error, clearError]);
 
   const handleAddReplacement = () => {
     setReplacements([...replacements, { old: '', new: '' }]);
@@ -32,52 +56,95 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
     setReplacements(updated);
   };
 
+  const handleUserChoice = (category: 'TU' | 'TV' | 'IV', original: string, selectedRole: string) => {
+    setUserChoices(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [original]: selectedRole
+      }
+    }));
+  };
+
   const handleAnalyze = async () => {
     if (!surveyFile || !rolesFile) {
       alert('Пожалуйста, загрузите оба файла');
       return;
     }
 
-    setIsProcessing(true);
-    setShowAnalysis(true);
+    const requestParams: AnalysisRequest = {
+      control_col: settings.controlCol,
+      operation_cols: settings.operationCols,
+      role_col: settings.roleCol,
+      uid_col: settings.uidCol,
+      replacements: replacements.filter(rep => rep.old.trim() && rep.new.trim())
+    };
+
+    const result = await analyzeFiles(surveyFile, rolesFile, requestParams);
     
-    try {
-      // TODO: Реализовать вызов API
-      console.log('Анализ данных...');
-      
-      // Временная заглушка
-      setTimeout(() => {
-        const mockData = {
-          data: [],
-          highlight_rows: [],
-          tu_summary: {},
-          tv_summary: {},
-          iv_summary: {}
-        };
-        onDataProcessed(mockData);
-        setIsProcessing(false);
-      }, 2000);
-      
-    } catch (error) {
-      console.error('Ошибка анализа:', error);
-      setIsProcessing(false);
+    if (result) {
+      setAnalysisData(result);
     }
   };
 
-  // Mock данные для анализа
-  const mockAnalysisData = {
-    tu: [
-      { value: 'Объект 1', role: 'ТУ Объект 1', found: true, type: 'Точное' },
-      { value: 'ПС Тестовая', role: 'ТУ ПС Тестовая', found: false, type: 'Не найдено' }
-    ],
-    tv: [
-      { value: 'Роль 1', role: 'ТВ Роль 1', found: true, type: 'Точное' },
-      { value: 'Кабель 110', role: 'ТВ Кабель 110', found: false, type: 'Не найдено' }
-    ],
-    iv: [
-      { value: 'Роль 3', role: 'ИВ Роль 3', found: true, type: 'Точное' },
-      { value: 'Данные 5', role: 'ИВ Данные 5', found: false, type: 'Не найдено' }
-    ]
+  const handleProcess = async () => {
+    if (!analysisData) return;
+
+    const processRequest = {
+      analysis_data: analysisData,
+      user_choices: userChoices
+    };
+
+    // TODO: Вызов API для обработки
+    console.log('Process request:', processRequest);
+    
+    // Временная заглушка - вызовем onDataProcessed с mock данными
+    const mockProcessedData = {
+      data: Array(10).fill(0).map((_, i) => ({
+        Управление: `Объект ${i + 1}`,
+        Ведение: `Роль ${i + 1}, Роль ${i + 2}`,
+        ТУ_ожидаемо: 1,
+        ТУ_найдено: i % 2,
+        ТВ_ожидаемо: 2,
+        ТВ_найдено: 1,
+        ТУ_роли: i % 2 ? `ТУ Объект ${i + 1}` : '',
+        ТВ_роли: `ТВ Роль ${i + 1}`,
+        Сводка_роли: i % 2 ? `UID00${i + 1}` : ''
+      })),
+      highlight_rows: [1, 3, 5, 7, 9],
+      tu_summary: {},
+      tv_summary: {},
+      iv_summary: {}
+    };
+
+    onDataProcessed(mockProcessedData);
+  };
+
+  // Функция для преобразования данных анализа в табличный формат
+  const getAnalysisTableData = (category: 'TU' | 'TV' | 'IV') => {
+    if (!analysisData) return [];
+
+    const autoMatches = analysisData.auto_matches[category] || [];
+    const pendingMatches = analysisData.pending_matches[category] || [];
+
+    // Автоматические совпадения
+    const autoRows = autoMatches.map((match: any) => ({
+      value: match.original,
+      role: match.matched,
+      found: true,
+      type: match.type
+    }));
+
+    // Ожидающие подтверждения
+    const pendingRows = pendingMatches.map((match: any) => ({
+      value: match.original,
+      role: 'Не найдено',
+      found: false,
+      type: 'Не найдено',
+      candidates: match.candidates
+    }));
+
+    return [...autoRows, ...pendingRows];
   };
 
   return (
@@ -113,175 +180,30 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
 
       {surveyFile && rolesFile ? (
         <>
-          {/* Выбор листов и столбцов */}
+          {/* Базовые настройки (упрощенно) */}
           <div className="section">
-            <h3>📄 Лист: <strong>Перечень</strong></h3>
-            <div className="preview-table">
-              <p>Лист1 (3 строки × 3 столбца)</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Управление</th>
-                    <th>Ведение</th>
-                    <th>Дополнительно</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>Объект 1</td><td>Роль 1, Роль 2</td><td>Доп 1</td></tr>
-                  <tr><td>Объект 2</td><td>Роль 3 (И)</td><td>Доп 2</td></tr>
-                  <tr><td>Объект 3</td><td>Роль 4, Роль 5 (ИВ)</td><td>Доп 3</td></tr>
-                </tbody>
-              </table>
-            </div>
-
+            <h3>⚙️ Настройки обработки</h3>
             <div className="columns">
               <div className="column">
-                <h4>🔹 Столбец: <strong>Управление</strong></h4>
-                <select className="form-select">
-                  <option>Управление</option>
-                  <option>Ответственный</option>
-                </select>
-                <p className="help-text">Например: 'Ответственный', 'Управление'</p>
+                <label>Столбец управления:</label>
+                <input 
+                  type="text"
+                  value={settings.controlCol}
+                  onChange={(e) => setSettings(prev => ({...prev, controlCol: e.target.value}))}
+                  className="form-select"
+                />
               </div>
-              
               <div className="column">
-                <h4>🔹 Столбцы: <strong>Ведение</strong></h4>
-                <select multiple className="form-select multiple">
-                  <option>Ведение</option>
-                  <option>Операции</option>
-                </select>
-                <p className="help-text">Может быть несколько столбцов. Роли в ячейке могут быть через запятую.</p>
-              </div>
-            </div>
-
-            <h3>📄 Лист: <strong>Роли</strong></h3>
-            <div className="preview-table">
-              <p>Roles (5 строк × 2 столбца)</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Роль</th>
-                    <th>UID</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>ТУ Объект 1</td><td>UID001</td></tr>
-                  <tr><td>ТВ Роль 1</td><td>UID002</td></tr>
-                  <tr><td>ТВ Роль 3</td><td>UID003</td></tr>
-                  <tr><td>ИВ Роль 3</td><td>UID004</td></tr>
-                  <tr><td>ТУ Другой</td><td>UID005</td></tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div className="columns">
-              <div className="column">
-                <h4>🔹 Столбец: <strong>Роли и UID</strong></h4>
-                <select className="form-select">
-                  <option>Роль</option>
-                  <option>Наименование</option>
-                </select>
-                <p className="help-text">Например: 'Роль', 'Наименование'</p>
-              </div>
-              
-              <div className="column">
-                <h4>🔹 Столбец: <strong>UID роли</strong></h4>
-                <select className="form-select">
-                  <option>UID</option>
-                  <option>Идентификатор</option>
-                </select>
-                <p className="help-text">Например: 'UID', 'Идентификатор'</p>
+                <label>Столбец ролей:</label>
+                <input 
+                  type="text"
+                  value={settings.roleCol}
+                  onChange={(e) => setSettings(prev => ({...prev, roleCol: e.target.value}))}
+                  className="form-select"
+                />
               </div>
             </div>
           </div>
-
-          {/* Анализ уникальных значений */}
-          {showAnalysis && (
-            <div className="section">
-              <h3>🔍 Анализ уникальных значений (до замен)</h3>
-              <p>Уникальные значения из исходных данных и их сопоставление:</p>
-              
-              <div className="analysis-columns">
-                <div className="analysis-column">
-                  <h4>Управление (ТУ)</h4>
-                  <div className="analysis-table">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Исходное значение</th>
-                          <th>Сопоставленная роль</th>
-                          <th>Найдено</th>
-                          <th>Тип</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {mockAnalysisData.tu.map((item, index) => (
-                          <tr key={index} className={item.found ? 'match-exact' : 'match-none'}>
-                            <td>{item.value}</td>
-                            <td>{item.role}</td>
-                            <td>{item.found ? '✅ Да' : '❌ Нет'}</td>
-                            <td>{item.type}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                
-                <div className="analysis-column">
-                  <h4>Ведение (ТВ)</h4>
-                  <div className="analysis-table">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Исходное значение</th>
-                          <th>Сопоставленная роль</th>
-                          <th>Найдено</th>
-                          <th>Тип</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {mockAnalysisData.tv.map((item, index) => (
-                          <tr key={index} className={item.found ? 'match-exact' : 'match-none'}>
-                            <td>{item.value}</td>
-                            <td>{item.role}</td>
-                            <td>{item.found ? '✅ Да' : '❌ Нет'}</td>
-                            <td>{item.type}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                
-                <div className="analysis-column">
-                  <h4>Информационное ведение (ИВ)</h4>
-                  <div className="analysis-table">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Исходное значение</th>
-                          <th>Сопоставленная роль</th>
-                          <th>Найдено</th>
-                          <th>Тип</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {mockAnalysisData.iv.map((item, index) => (
-                          <tr key={index} className={item.found ? 'match-exact' : 'match-none'}>
-                            <td>{item.value}</td>
-                            <td>{item.role}</td>
-                            <td>{item.found ? '✅ Да' : '❌ Нет'}</td>
-                            <td>{item.type}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Замены */}
           <div className="section">
@@ -334,36 +256,99 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
           <div className="action-section">
             <button 
               onClick={handleAnalyze}
-              disabled={isProcessing}
+              disabled={loading}
               className="analyze-btn primary"
             >
-              {isProcessing ? '🔍 Анализ...' : '🔍 Анализ и подготовка сопоставления'}
+              {loading ? '🔍 Анализ...' : '🔍 Анализ и подготовка сопоставления'}
             </button>
           </div>
 
-          {/* Выбор сопоставлений (после анализа) */}
-          {showAnalysis && !isProcessing && (
+          {/* Результаты анализа */}
+          {analysisData && (
             <div className="section">
-              <h3>🤔 Требуется подтверждение сопоставлений</h3>
-              <p>Найдены неопределенные совпадения. Пожалуйста, выберите правильный вариант:</p>
+              <h3>🔍 Результаты анализа</h3>
+              <p>Уникальные значения из исходных данных и их сопоставление:</p>
               
-              <div className="matching-section">
-                <h4>Управление (ТУ)</h4>
-                <div className="match-option match-suggested">
-                  <label>
-                    <input type="checkbox" />
-                    <strong>Исходное значение:</strong> ПС Тестовая
-                  </label>
-                  <div className="match-candidates">
-                    <label><input type="radio" name="tu_match" /> ✅ ТУ ПС Тестовая (85% совпадения)</label>
-                    <label><input type="radio" name="tu_match" /> ✅ ТУ Тестовая Подстанция (78% совпадения)</label>
+              <div className="analysis-columns">
+                {(['TU', 'TV', 'IV'] as const).map(category => (
+                  <div key={category} className="analysis-column">
+                    <h4>
+                      {category === 'TU' && 'Управление (ТУ)'}
+                      {category === 'TV' && 'Ведение (ТВ)'}
+                      {category === 'IV' && 'Информационное ведение (ИВ)'}
+                    </h4>
+                    <div className="analysis-table">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Исходное значение</th>
+                            <th>Сопоставленная роль</th>
+                            <th>Найдено</th>
+                            <th>Тип</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {getAnalysisTableData(category).map((item: any, index) => (
+                            <tr key={index} className={item.found ? 'match-exact' : 'match-none'}>
+                              <td>{item.value}</td>
+                              <td>{item.role}</td>
+                              <td>{item.found ? '✅ Да' : '❌ Нет'}</td>
+                              <td>{item.type}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-              
-              <button className="confirm-btn primary">
-                ✅ Подтвердить выбор и обработать
-              </button>
+
+              {/* Выбор сопоставлений */}
+              {analysisData.pending_matches && 
+                Object.values(analysisData.pending_matches).some((arr: any) => arr.length > 0) && (
+                <div className="section">
+                  <h3>🤔 Требуется подтверждение сопоставлений</h3>
+                  <p>Найдены неопределенные совпадения. Пожалуйста, выберите правильный вариант:</p>
+                  
+                  {(['TU', 'TV', 'IV'] as const).map(category => (
+                    analysisData.pending_matches[category]?.length > 0 && (
+                      <div key={category} className="matching-section">
+                        <h4>
+                          {category === 'TU' && 'Управление (ТУ)'}
+                          {category === 'TV' && 'Ведение (ТВ)'}
+                          {category === 'IV' && 'Информационное ведение (ИВ)'}
+                        </h4>
+                        {analysisData.pending_matches[category].map((match: any, index: number) => (
+                          <div key={index} className="match-option match-suggested">
+                            <label>
+                              <strong>Исходное значение:</strong> {match.original}
+                            </label>
+                            <div className="match-candidates">
+                              {match.candidates.map((candidate: any, candIndex: number) => (
+                                <label key={candIndex}>
+                                  <input 
+                                    type="radio" 
+                                    name={`${category}_${index}`}
+                                    onChange={() => handleUserChoice(category, match.original, candidate.role_name)}
+                                  />
+                                  ✅ {candidate.role_name} ({candidate.score}% совпадения)
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  ))}
+                  
+                  <button 
+                    onClick={handleProcess}
+                    className="confirm-btn primary"
+                  >
+                    ✅ Подтвердить выбор и обработать
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </>
