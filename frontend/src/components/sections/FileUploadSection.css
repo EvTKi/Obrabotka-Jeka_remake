@@ -1,0 +1,52 @@
+/* src/components/sections/FileUploadSection.css */
+.file-upload-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 1.5rem 0;
+}
+
+.file-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.file-upload label {
+  color: #1a3d6d;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.file-input {
+  padding: 0.75rem;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  background: #f8f9fa;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.file-input:hover {
+  border-color: #1a3d6d;
+  background: #f0f4f8;
+}
+
+.file-status {
+  color: #28a745;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.loading-text {
+  color: #6c757d;
+  font-style: italic;
+  margin-left: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .file-upload-section {
+    grid-template-columns: 1fr;
+  }
+}

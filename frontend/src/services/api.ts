@@ -1,3 +1,4 @@
+// src/services/api.ts
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -51,6 +52,17 @@ export interface ProcessRequest {
   };
 }
 
+export interface FilePreviewResponse {
+  sheetNames: string[];
+  columns: string[];
+  previewData: any[];
+}
+
+export interface SheetDataResponse {
+  columns: string[];
+  previewData: any[];
+}
+
 class ApiService {
   async analyzeFiles(
     surveyFile: File,
@@ -85,6 +97,66 @@ class ApiService {
   async healthCheck(): Promise<{ status: string }> {
     const response = await api.get('/health');
     return response.data;
+  }
+
+  // Новые методы для предпросмотра файлов
+  async getFilePreview(file: File): Promise<FilePreviewResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // TODO: Реализовать реальный endpoint на бэкенде
+    // Временная заглушка для демонстрации
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          sheetNames: ['Лист1', 'Лист2'],
+          columns: ['Управление', 'Ведение', 'Роль', 'UID', 'Описание'],
+          previewData: Array(3).fill(0).map((_, i) => ({
+            Управление: `Объект ${i + 1}`,
+            Ведение: `Операция ${i + 1}, Операция ${i + 2}`,
+            Роль: `Роль ${i + 1}`,
+            UID: `UID00${i + 1}`,
+            Описание: `Описание объекта ${i + 1}`
+          }))
+        });
+      }, 1000);
+    });
+
+    // Когда endpoint будет готов, раскомментировать:
+    // const response = await api.post<FilePreviewResponse>('/api/file-preview', formData);
+    // return response.data;
+  }
+
+  async getSheetData(file: File, sheetName: string): Promise<SheetDataResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('sheet_name', sheetName);
+
+    // TODO: Реализовать реальный endpoint на бэкенде
+    // Временная заглушка для демонстрации
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          columns: ['Управление', 'Ведение', 'Роль', 'UID'],
+          previewData: Array(3).fill(0).map((_, i) => ({
+            Управление: `Объект ${i + 1}`,
+            Ведение: `Операция ${i + 1}`,
+            Роль: `Роль ${i + 1}`,
+            UID: `UID00${i + 1}`
+          }))
+        });
+      }, 500);
+    });
+
+    // Когда endpoint будет готов, раскомментировать:
+    // const response = await api.post<SheetDataResponse>('/api/sheet-data', formData);
+    // return response.data;
+  }
+
+  // Метод для получения только списка колонок
+  async getFileColumns(file: File, sheetName: string = 'Лист1'): Promise<string[]> {
+    const data = await this.getSheetData(file, sheetName);
+    return data.columns;
   }
 }
 

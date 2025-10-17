@@ -1,0 +1,99 @@
+/* src/components/sections/AnalysisResultsSection.css */
+.analysis-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.analysis-column h4 {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #1a3d6d;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.analysis-table {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.analysis-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 0.8rem;
+}
+
+.analysis-table th,
+.analysis-table td {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  text-align: left;
+}
+
+.analysis-table th {
+  background: #e9ecef;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+
+.matching-section {
+  margin: 1.5rem 0;
+}
+
+.match-option {
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border: 1px solid #dee2e6;
+}
+
+.match-original {
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.match-candidates {
+  margin-left: 1rem;
+}
+
+.candidate-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.candidate-option:hover {
+  background: #f8f9fa;
+}
+
+.candidate-option input[type="checkbox"] {
+  margin: 0;
+}
+
+.candidate-text {
+  flex: 1;
+}
+
+.confirm-button {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .analysis-columns {
+    grid-template-columns: 1fr;
+  }
+}

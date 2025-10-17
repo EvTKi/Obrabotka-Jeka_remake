@@ -1,0 +1,13 @@
+/* src/components/sections/FilePreviewSection.css */
+.preview-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 1rem 0;
+}
+
+@media (max-width: 768px) {
+  .preview-section {
+    grid-template-columns: 1fr;
+  }
+}

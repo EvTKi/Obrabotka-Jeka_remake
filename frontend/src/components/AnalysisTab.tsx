@@ -1,13 +1,17 @@
-// src/components/AnalysisTab.tsx
+// src/components/AnalysisTab.tsx - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../hooks/useApi';
-import { AnalysisRequest } from '../services/api';
-import { 
-  InfoBox, 
-  // WarningBox, // TODO: будет использоваться позже
-  // SuccessBox  // TODO: будет использоваться позже  
-} from './MessageBoxes';
-import './AnalysisTab.css';
+import { useFilePreview } from '../hooks/useFilePreview';
+import { useAnalysisProcess } from '../hooks/useAnalysisProcess';
+import { AnalysisRequest, ProcessRequest } from '../services/api';
+
+// Импортируем компоненты секций
+import { FileUploadSection } from './sections/FileUploadSection';
+import { FilePreviewSection } from './sections/FilePreviewSection';
+import { SettingsSection } from './sections/SettingsSection';
+import { ReplacementsSection } from './sections/ReplacementsSection';
+import { AnalysisResultsSection } from './sections/AnalysisResultsSection';
+import { ProcessStatus } from './ProcessStatus';
 
 interface Replacement {
   old: string;
@@ -19,62 +23,70 @@ interface AnalysisTabProps {
 }
 
 const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
-  const { loading, error, analyzeFiles, clearError } = useApi();
-  
+  // Хуки - убираем неиспользуемый analyzeFiles
+  const { loading: apiLoading, error: apiError, clearError } = useApi();
+  const { previews, loading: previewLoading, getFilePreview, clearPreview } = useFilePreview();
+  const { processingState, analyzeData, processWithChoices, downloadResult } = useAnalysisProcess();
+
+  // Состояния
   const [surveyFile, setSurveyFile] = useState<File | null>(null);
   const [rolesFile, setRolesFile] = useState<File | null>(null);
   const [replacements, setReplacements] = useState<Replacement[]>([{ old: '', new: '' }]);
   const [analysisData, setAnalysisData] = useState<any>(null);
-  const [userChoices, setUserChoices] = useState<Record<string, Record<string, string>>>({
+  
+  // Исправляем тип userChoices согласно ProcessRequest
+  const [userChoices, setUserChoices] = useState<ProcessRequest['user_choices']>({
     TU: {},
     TV: {},
     IV: {}
   });
 
-  // Настройки по умолчанию (временные, потом будут динамические)
+  // Настройки
   const [settings, setSettings] = useState({
-    controlCol: 'Управление',
-    operationCols: ['Ведение'],
-    roleCol: 'Роль',
-    uidCol: 'UID'
+    controlCol: '',
+    operationCols: [] as string[],
+    roleCol: '',
+    uidCol: ''
   });
 
+  // Обработчики ошибок
   useEffect(() => {
-    if (error) {
-      alert(`Ошибка: ${error}`);
+    if (apiError) {
+      alert(`Ошибка: ${apiError}`);
       clearError();
     }
-  }, [error, clearError]);
+  }, [apiError, clearError]);
 
-  const handleAddReplacement = () => {
-    setReplacements([...replacements, { old: '', new: '' }]);
-  };
-
-  const handleRemoveReplacement = (index: number) => {
-    if (replacements.length > 1) {
-      setReplacements(replacements.filter((_, i) => i !== index));
+  // Обработчики файлов
+  const handleSurveyFileChange = async (file: File | null) => {
+    setSurveyFile(file);
+    if (file) {
+      await getFilePreview(file, 'survey');
+    } else {
+      clearPreview('survey');
+      setSettings(prev => ({ ...prev, controlCol: '', operationCols: [] }));
     }
   };
 
-  const handleReplacementChange = (index: number, field: keyof Replacement, value: string) => {
-    const updated = [...replacements];
-    updated[index][field] = value;
-    setReplacements(updated);
+  const handleRolesFileChange = async (file: File | null) => {
+    setRolesFile(file);
+    if (file) {
+      await getFilePreview(file, 'roles');
+    } else {
+      clearPreview('roles');
+      setSettings(prev => ({ ...prev, roleCol: '', uidCol: '' }));
+    }
   };
 
-  const handleUserChoice = (category: 'TU' | 'TV' | 'IV', original: string, selectedRole: string) => {
-    setUserChoices(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [original]: selectedRole
-      }
-    }));
-  };
-
+  // Основные обработчики
   const handleAnalyze = async () => {
     if (!surveyFile || !rolesFile) {
       alert('Пожалуйста, загрузите оба файла');
+      return;
+    }
+
+    if (!settings.controlCol || !settings.roleCol || !settings.uidCol || settings.operationCols.length === 0) {
+      alert('Пожалуйста, укажите все необходимые столбцы');
       return;
     }
 
@@ -86,328 +98,111 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
       replacements: replacements.filter(rep => rep.old.trim() && rep.new.trim())
     };
 
-    const result = await analyzeFiles(surveyFile, rolesFile, requestParams);
-    
-    if (result) {
+    try {
+      const result = await analyzeData(requestParams);
       setAnalysisData(result);
+    } catch (error) {
+      console.error('Analysis error:', error);
     }
   };
 
   const handleProcess = async () => {
     if (!analysisData) return;
 
-    const processRequest = {
+    // Исправляем тип согласно ProcessRequest
+    const processRequest: ProcessRequest = {
       analysis_data: analysisData,
-      user_choices: userChoices
+      user_choices: userChoices // Теперь тип совместим
     };
 
-    // TODO: Вызов API для обработки
-    console.log('Process request:', processRequest);
-    
-    // Временная заглушка - вызовем onDataProcessed с mock данными
-    const mockProcessedData = {
-      data: Array(10).fill(0).map((_, i) => ({
-        Управление: `Объект ${i + 1}`,
-        Ведение: `Роль ${i + 1}, Роль ${i + 2}`,
-        ТУ_ожидаемо: 1,
-        ТУ_найдено: i % 2,
-        ТВ_ожидаемо: 2,
-        ТВ_найдено: 1,
-        ТУ_роли: i % 2 ? `ТУ Объект ${i + 1}` : '',
-        ТВ_роли: `ТВ Роль ${i + 1}`,
-        Сводка_роли: i % 2 ? `UID00${i + 1}` : ''
-      })),
-      highlight_rows: [1, 3, 5, 7, 9],
-      tu_summary: {},
-      tv_summary: {},
-      iv_summary: {}
-    };
-
-    onDataProcessed(mockProcessedData);
+    try {
+      const result = await processWithChoices(processRequest);
+      onDataProcessed({
+        ...result,
+        status: 'completed'
+      });
+    } catch (error) {
+      console.error('Processing error:', error);
+    }
   };
 
-  // Функция для преобразования данных анализа в табличный формат
-  const getAnalysisTableData = (category: 'TU' | 'TV' | 'IV') => {
-    if (!analysisData) return [];
+  const handleDownload = async (processId: string) => {
+    try {
+      await downloadResult(processId);
+    } catch (error) {
+      console.error('Download error:', error);
+    }
+  };
 
-    const autoMatches = analysisData.auto_matches[category] || [];
-    const pendingMatches = analysisData.pending_matches[category] || [];
-
-    // Автоматические совпадения
-    const autoRows = autoMatches.map((match: any) => ({
-      value: match.original,
-      role: match.matched,
-      found: true,
-      type: match.type,
-      uid: match.uid
-    }));
-
-    // Ожидающие подтверждения
-    const pendingRows = pendingMatches.map((match: any) => ({
-      value: match.original,
-      role: 'Не найдено',
-      found: false,
-      type: 'Не найдено',
-      candidates: match.candidates
-    }));
-
-    return [...autoRows, ...pendingRows];
+  // Обработчик для обновления userChoices
+  const handleUserChoiceChange = (newUserChoices: ProcessRequest['user_choices']) => {
+    setUserChoices(newUserChoices);
   };
 
   return (
     <div className="analysis-tab">
-      {/* 📥 Загрузите файлы - точно как в Streamlit */}
-      <div className="streamlit-section">
-        <h3>📥 Загрузите файлы</h3>
-        
-        <div className="file-upload-section">
-          <div className="file-upload">
-            <label><strong>Перечень (Excel)</strong></label>
-            <input 
-              type="file" 
-              accept=".xlsx,.xls"
-              onChange={(e) => setSurveyFile(e.target.files?.[0] || null)}
-              className="file-input"
-            />
-            {surveyFile && (
-              <div className="file-status">
-                ✅ {surveyFile.name}
-              </div>
-            )}
-          </div>
-          
-          <div className="file-upload">
-            <label><strong>Файл с ролями (Excel)</strong></label>
-            <input 
-              type="file" 
-              accept=".xlsx,.xls"
-              onChange={(e) => setRolesFile(e.target.files?.[0] || null)}
-              className="file-input"
-            />
-            {rolesFile && (
-              <div className="file-status">
-                ✅ {rolesFile.name}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Секция загрузки файлов */}
+      <FileUploadSection
+        surveyFile={surveyFile}
+        rolesFile={rolesFile}
+        onSurveyFileChange={handleSurveyFileChange}
+        onRolesFileChange={handleRolesFileChange}
+        previewLoading={previewLoading}
+      />
 
-      {!surveyFile || !rolesFile ? (
-        <InfoBox>
-          <p>Пожалуйста, загрузите оба файла для продолжения.</p>
-        </InfoBox>
-      ) : (
+      {/* Показываем остальные секции только если файлы загружены */}
+      {surveyFile && rolesFile && (
         <>
-          {/* ⚙️ Настройки обработки - точно как в Streamlit */}
+          {/* Предпросмотр файлов */}
+          <FilePreviewSection
+            surveyFile={surveyFile}
+            rolesFile={rolesFile}
+            previews={previews}
+          />
+
+          {/* Настройки обработки */}
+          <SettingsSection
+            settings={settings}
+            onSettingsChange={setSettings}
+            previews={previews}
+          />
+
+          {/* Замены */}
+          <ReplacementsSection
+            replacements={replacements}
+            onReplacementsChange={setReplacements}
+          />
+
+          {/* Статус обработки */}
           <div className="streamlit-section">
-            <h3>⚙️ Настройки обработки</h3>
-            <div className="settings-columns">
-              <div className="setting-group">
-                <label>Столбец управления:</label>
-                <input 
-                  type="text"
-                  value={settings.controlCol}
-                  onChange={(e) => setSettings(prev => ({...prev, controlCol: e.target.value}))}
-                  className="streamlit-input"
-                  placeholder="Например: Управление"
-                />
-                <div className="help-text">Столбец с признаком 'Управление'</div>
-              </div>
-              <div className="setting-group">
-                <label>Столбец ролей:</label>
-                <input 
-                  type="text"
-                  value={settings.roleCol}
-                  onChange={(e) => setSettings(prev => ({...prev, roleCol: e.target.value}))}
-                  className="streamlit-input"
-                  placeholder="Например: Роль"
-                />
-                <div className="help-text">Столбец с наименованием роли</div>
-              </div>
-            </div>
-            
-            <div className="setting-group">
-              <label>Столбцы ведения:</label>
-              <input 
-                type="text"
-                value={settings.operationCols.join(', ')}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev, 
-                  operationCols: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                }))}
-                className="streamlit-input"
-                placeholder="Например: Ведение, Операции"
-              />
-              <div className="help-text">Столбцы с признаком 'Ведение' (через запятую)</div>
-            </div>
+            <h3>📈 Статус обработки</h3>
+            <ProcessStatus
+              status={processingState.status}
+              error={processingState.error}
+              processId={processingState.processId}
+              onDownload={handleDownload}
+            />
           </div>
 
-          {/* 🔁 Замены перед обработкой - точно как в Streamlit */}
-          <div className="streamlit-section">
-            <h3>🔁 Замены перед обработкой</h3>
-            <p>Укажите, какие значения нужно заменить перед сопоставлением</p>
-            
-            <div className="replacements-container">
-              {replacements.map((replacement, index) => (
-                <div key={index} className="replacement-row">
-                  <div className="replacement-input-group">
-                    <input
-                      type="text"
-                      placeholder="Заменить"
-                      value={replacement.old}
-                      onChange={(e) => handleReplacementChange(index, 'old', e.target.value)}
-                      className="streamlit-input replacement-input"
-                    />
-                    <span className="replacement-arrow">→</span>
-                    <input
-                      type="text"
-                      placeholder="На"
-                      value={replacement.new}
-                      onChange={(e) => handleReplacementChange(index, 'new', e.target.value)}
-                      className="streamlit-input replacement-input"
-                    />
-                  </div>
-                  {replacements.length > 1 && (
-                    <button 
-                      type="button"
-                      onClick={() => handleRemoveReplacement(index)}
-                      className="streamlit-button remove-button"
-                    >
-                      ❌
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            
-            <button 
-              type="button" 
-              onClick={handleAddReplacement}
-              className="streamlit-button secondary"
-            >
-              ➕ Добавить замену
-            </button>
-          </div>
-
-          {/* 🔍 Кнопка анализа - точно как в Streamlit */}
+          {/* Кнопка анализа */}
           <div className="action-section">
             <button 
               onClick={handleAnalyze}
-              disabled={loading}
-              className={`streamlit-button primary ${loading ? 'loading' : ''}`}
+              disabled={apiLoading || !settings.controlCol || !settings.roleCol || !settings.uidCol || settings.operationCols.length === 0}
+              className={`streamlit-button primary ${apiLoading ? 'loading' : ''}`}
             >
-              {loading ? '🔍 Анализ...' : '🔍 Анализ и подготовка сопоставления'}
+              {apiLoading ? '🔍 Анализ...' : '🔍 Анализ и подготовка сопоставления'}
             </button>
           </div>
 
-          {/* 📊 Результаты анализа - точно как в Streamlit */}
+          {/* Результаты анализа */}
           {analysisData && (
-            <div className="streamlit-section">
-              <h3>📊 Результаты анализа</h3>
-              <p>Уникальные значения из исходных данных и их сопоставление:</p>
-              
-              <div className="analysis-columns">
-                {(['TU', 'TV', 'IV'] as const).map(category => (
-                  <div key={category} className="analysis-column">
-                    <h4>
-                      {category === 'TU' && '🔹 Управление (ТУ)'}
-                      {category === 'TV' && '🔹 Ведение (ТВ)'}
-                      {category === 'IV' && '🔹 Информационное ведение (ИВ)'}
-                    </h4>
-                    <div className="analysis-table">
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Исходное значение</th>
-                            <th>Сопоставленная роль</th>
-                            <th>Найдено</th>
-                            <th>Тип</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {getAnalysisTableData(category).map((item: any, index) => (
-                            <tr 
-                              key={index} 
-                              className={
-                                item.found ? 'streamlit-match-exact' : 
-                                item.candidates ? 'streamlit-match-suggested' : 'streamlit-match-none'
-                              }
-                            >
-                              <td>{item.value}</td>
-                              <td>{item.role}</td>
-                              <td>{item.found ? '✅ Да' : '❌ Нет'}</td>
-                              <td>{item.type}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* 🤔 Выбор сопоставлений - точно как в Streamlit */}
-              {analysisData.pending_matches && 
-                Object.values(analysisData.pending_matches).some((arr: any) => arr.length > 0) && (
-                <div className="streamlit-section">
-                  <h3>🤔 Требуется подтверждение сопоставлений</h3>
-                  <p>Найдены неопределенные совпадения. Пожалуйста, выберите правильный вариант:</p>
-                  
-                  {(['TU', 'TV', 'IV'] as const).map(category => (
-                    analysisData.pending_matches[category]?.length > 0 && (
-                      <div key={category} className="matching-section">
-                        <h4>
-                          {category === 'TU' && '🔹 Управление (ТУ)'}
-                          {category === 'TV' && '🔹 Ведение (ТВ)'}
-                          {category === 'IV' && '🔹 Информационное ведение (ИВ)'}
-                        </h4>
-                        {analysisData.pending_matches[category].map((match: any, index: number) => (
-                          <div key={index} className="streamlit-match-suggested match-option">
-                            <div className="match-original">
-                              <strong>Исходное значение:</strong> {match.original}
-                            </div>
-                            <div className="match-candidates">
-                              {match.candidates.map((candidate: any, candIndex: number) => (
-                                <label key={candIndex} className="candidate-option">
-                                  <input 
-                                    type="checkbox"
-                                    onChange={() => handleUserChoice(category, match.original, candidate.role_name)}
-                                  />
-                                  <span className="candidate-text">
-                                    ✅ {candidate.role_name} ({candidate.score}% совпадения)
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  ))}
-                  
-                  <button 
-                    onClick={handleProcess}
-                    className="streamlit-button primary confirm-button"
-                  >
-                    ✅ Подтвердить выбор и обработать
-                  </button>
-                </div>
-              )}
-
-              {/* Если нет предложений для выбора */}
-              {analysisData.pending_matches && 
-                Object.values(analysisData.pending_matches).every((arr: any) => arr.length === 0) && (
-                <div className="action-section">
-                  <button 
-                    onClick={handleProcess}
-                    className="streamlit-button primary"
-                  >
-                    ✅ Обработать без выбора
-                  </button>
-                </div>
-              )}
-            </div>
+            <AnalysisResultsSection
+              analysisData={analysisData}
+              userChoices={userChoices}
+              onUserChoice={handleUserChoiceChange}
+              onProcess={handleProcess}
+            />
           )}
         </>
       )}

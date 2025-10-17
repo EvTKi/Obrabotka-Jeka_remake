@@ -1,0 +1,32 @@
+/* src/components/ColumnSelector.css */
+.column-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.selector-label {
+  color: #1a3d6d;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.streamlit-select {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: white;
+  transition: border-color 0.3s ease;
+  min-height: 42px;
+}
+
+.streamlit-select:focus {
+  outline: none;
+  border-color: #1a3d6d;
+  box-shadow: 0 0 0 2px rgba(26, 61, 109, 0.1);
+}
+
+.streamlit-select[multiple] {
+  min-height: 120px;
+}

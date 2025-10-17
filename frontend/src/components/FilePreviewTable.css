@@ -1,0 +1,57 @@
+/* src/components/FilePreviewTable.css */
+.file-preview {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.file-preview h4 {
+  color: #1a3d6d;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.preview-table {
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.preview-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.preview-table th,
+.preview-table td {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  text-align: left;
+}
+
+.preview-table th {
+  background: #e9ecef;
+  font-weight: 600;
+  color: #1a3d6d;
+}
+
+.preview-info {
+  font-size: 0.8rem;
+  color: #6c757d;
+  text-align: center;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.no-preview {
+  text-align: center;
+  color: #6c757d;
+  padding: 2rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px dashed #dee2e6;
+}

@@ -1,3 +1,4 @@
+// src/hooks/useApi.ts - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import { useState, useCallback } from 'react';
 import { apiService, AnalysisRequest, AnalysisResponse, ProcessRequest } from '../services/api';
 
@@ -5,26 +6,7 @@ export const useApi = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const analyzeFiles = useCallback(async (
-    surveyFile: File,
-    rolesFile: File,
-    params: AnalysisRequest
-  ): Promise<AnalysisResponse | null> => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await apiService.analyzeFiles(surveyFile, rolesFile, params);
-      return result;
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Ошибка анализа файлов';
-      setError(errorMessage);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  // Убираем analyzeFiles если он не используется
   const processData = useCallback(async (request: ProcessRequest): Promise<any> => {
     setLoading(true);
     setError(null);
@@ -64,8 +46,7 @@ export const useApi = () => {
   return {
     loading,
     error,
-    analyzeFiles,
-    processData,
+    processData, // Оставляем только используемые методы
     downloadResult,
     clearError,
   };

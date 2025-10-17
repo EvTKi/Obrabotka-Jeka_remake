@@ -1,0 +1,55 @@
+/* src/components/sections/ReplacementsSection.css */
+.replacements-container {
+  margin: 1.5rem 0;
+}
+
+.replacement-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.replacement-input-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.replacement-input {
+  flex: 1;
+}
+
+.replacement-arrow {
+  color: #666;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.remove-button {
+  padding: 0.5rem !important;
+  background: #dc3545 !important;
+}
+
+.remove-button:hover {
+  background: #c82333 !important;
+}
+
+@media (max-width: 768px) {
+  .replacement-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .replacement-input-group {
+    flex-direction: column;
+  }
+  
+  .replacement-arrow {
+    transform: rotate(90deg);
+  }
+}
