@@ -1,12 +1,11 @@
 // src/hooks/useApi.ts - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import { useState, useCallback } from 'react';
-import { apiService, AnalysisRequest, AnalysisResponse, ProcessRequest } from '../services/api';
+import { apiService, ProcessRequest } from '../services/api'; // Убираем неиспользуемые импорты
 
 export const useApi = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Убираем analyzeFiles если он не используется
   const processData = useCallback(async (request: ProcessRequest): Promise<any> => {
     setLoading(true);
     setError(null);
@@ -46,7 +45,7 @@ export const useApi = () => {
   return {
     loading,
     error,
-    processData, // Оставляем только используемые методы
+    processData,
     downloadResult,
     clearError,
   };
