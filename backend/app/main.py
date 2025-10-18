@@ -1,3 +1,4 @@
+# app/main.py - ОБНОВЛЕННАЯ ВЕРСИЯ
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -23,10 +24,11 @@ app.add_middleware(
 )
 
 # Подключаем роутеры
-from .api.endpoints import analysis, processing
+from .api.endpoints import analysis, processing, file_preview  # ДОБАВЛЯЕМ ИМПОРТ
 
 app.include_router(analysis.router, prefix="/api", tags=["analysis"])
 app.include_router(processing.router, prefix="/api", tags=["processing"])
+app.include_router(file_preview.router, prefix="/api", tags=["file-preview"])  # ДОБАВЛЯЕМ РОУТЕР
 
 @app.get("/")
 async def root():
