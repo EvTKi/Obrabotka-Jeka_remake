@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 @router.post("/file-preview")
 async def get_file_preview(file: UploadFile = File(...)):
     """
-    Предпросмотр структуры Excel файла
+    Предпросмотр структуры Excel файла (ВСЕ данные)
     """
     try:
         # Валидация файла
@@ -26,13 +26,14 @@ async def get_file_preview(file: UploadFile = File(...)):
         if len(content) == 0:
             raise HTTPException(400, "File is empty")
 
-        # Загрузка Excel
+        # Загрузка Excel (ВСЕ данные, без ограничения)
         try:
             xls = pd.ExcelFile(BytesIO(content))
             sheets = {}
             
             for sheet_name in xls.sheet_names:
-                df = pd.read_excel(xls, sheet_name=sheet_name, nrows=5)  # Только первые 5 строк для предпросмотра
+                # ЗАГРУЖАЕМ ВСЕ ДАННЫЕ, без nrows
+                df = pd.read_excel(xls, sheet_name=sheet_name)
                 sheets[sheet_name] = {
                     "columns": df.columns.tolist(),
                     "preview_data": df.fillna('').astype(str).to_dict('records')
@@ -55,7 +56,7 @@ async def get_file_preview(file: UploadFile = File(...)):
 @router.post("/sheet-data")
 async def get_sheet_data(file: UploadFile = File(...), sheet_name: str = "Лист1"):
     """
-    Получение данных конкретного листа
+    Получение данных конкретного листа (ВСЕ данные)
     """
     try:
         # Валидация
@@ -70,7 +71,7 @@ async def get_sheet_data(file: UploadFile = File(...), sheet_name: str = "Лис
         if len(content) == 0:
             raise HTTPException(400, "File is empty")
 
-        # Загрузка конкретного листа
+        # Загрузка конкретного листа (ВСЕ данные)
         try:
             xls = pd.ExcelFile(BytesIO(content))
             
@@ -78,7 +79,8 @@ async def get_sheet_data(file: UploadFile = File(...), sheet_name: str = "Лис
                 available_sheets = xls.sheet_names
                 raise HTTPException(400, f"Sheet '{sheet_name}' not found. Available sheets: {available_sheets}")
                 
-            df = pd.read_excel(xls, sheet_name=sheet_name, nrows=10)  # Первые 10 строк
+            # ЗАГРУЖАЕМ ВСЕ ДАННЫЕ, без nrows
+            df = pd.read_excel(xls, sheet_name=sheet_name)
             df = df.fillna('')  # Заменяем NaN на пустые строки
             
         except Exception as e:
