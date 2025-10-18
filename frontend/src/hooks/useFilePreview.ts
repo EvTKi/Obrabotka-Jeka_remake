@@ -1,7 +1,8 @@
-// src/hooks/useFilePreview.ts - ОБНОВЛЕННАЯ ВЕРСИЯ
+// src/hooks/useFilePreview.ts - ОБНОВЛЯЕМ ТИП
 import { useState, useCallback } from 'react';
-import { apiService } from '../services/api'; // Теперь используем!
+import { apiService } from '../services/api'; 
 
+// ОБНОВЛЯЕМ ИНТЕРФЕЙС ДЛЯ СООТВЕТСТВИЯ НОВОМУ ТИПУ
 interface FilePreview {
   sheetNames: string[];
   columns: string[];
@@ -23,7 +24,7 @@ export const useFilePreview = () => {
     setError(null);
     
     try {
-      // Используем реальный API сервис
+      // Используем реальный API сервис - теперь тип совместим
       const previewData = await apiService.getFilePreview(file);
       
       setPreviews(prev => ({
@@ -36,23 +37,11 @@ export const useFilePreview = () => {
       setError(`Ошибка загрузки файла: ${err.message}`);
       
       // Fallback: используем mock данные если API недоступно
-      const mockSheetNames = ['Лист1'];
-      const mockColumns = ['Управление', 'Ведение', 'Роль', 'UID', 'Описание'];
-      const mockPreviewData = Array(3).fill(0).map((_, i) => ({
-        Управление: `Объект ${i + 1}`,
-        Ведение: `Операция ${i + 1}`,
-        Роль: `Роль ${i + 1}`,
-        UID: `UID00${i + 1}`,
-        Описание: `Описание ${i + 1}`
-      }));
-
+      const mockPreviewData = await apiService.getMockFilePreview(file);
+      
       setPreviews(prev => ({
         ...prev,
-        [type]: {
-          sheetNames: mockSheetNames,
-          columns: mockColumns,
-          previewData: mockPreviewData
-        }
+        [type]: mockPreviewData
       }));
     } finally {
       setLoading(false);

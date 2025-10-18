@@ -1,4 +1,4 @@
-// src/hooks/useAnalysisProcess.ts
+// src/hooks/useAnalysisProcess.ts - ИСПРАВЛЕННАЯ ВЕРСИЯ
 import { useState, useCallback } from 'react';
 import { apiService, AnalysisRequest, ProcessRequest } from '../services/api';
 
@@ -13,15 +13,13 @@ export const useAnalysisProcess = () => {
     processId: null
   });
 
-  const analyzeData = useCallback(async (request: AnalysisRequest) => {
+  // ИСПРАВЛЕНИЕ: добавляем параметры файлов
+  const analyzeData = useCallback(async (surveyFile: File, rolesFile: File, request: AnalysisRequest) => {
     setProcessingState({ status: 'analyzing', error: null, processId: null });
     
     try {
-      // TODO: Заменить на реальные файлы когда будет готов бэкенд
-      const mockSurveyFile = new File([], 'survey.xlsx');
-      const mockRolesFile = new File([], 'roles.xlsx');
-      
-      const result = await apiService.analyzeFiles(mockSurveyFile, mockRolesFile, request);
+      // Теперь передаем реальные файлы
+      const result = await apiService.analyzeFiles(surveyFile, rolesFile, request);
       setProcessingState(prev => ({ ...prev, status: 'completed' }));
       return result;
     } catch (error: any) {
@@ -31,6 +29,7 @@ export const useAnalysisProcess = () => {
     }
   }, []);
 
+  // Остальные методы без изменений
   const processWithChoices = useCallback(async (request: ProcessRequest) => {
     setProcessingState({ status: 'processing', error: null, processId: null });
     
@@ -51,7 +50,6 @@ export const useAnalysisProcess = () => {
     try {
       const blob = await apiService.downloadResult(processId);
       
-      // Создаем ссылку для скачивания
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';

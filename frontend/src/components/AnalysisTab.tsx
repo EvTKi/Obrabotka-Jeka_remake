@@ -80,31 +80,32 @@ const AnalysisTab: React.FC<AnalysisTabProps> = ({ onDataProcessed }) => {
 
   // Основные обработчики
   const handleAnalyze = async () => {
-    if (!surveyFile || !rolesFile) {
-      alert('Пожалуйста, загрузите оба файла');
-      return;
-    }
+      if (!surveyFile || !rolesFile) {
+        alert('Пожалуйста, загрузите оба файла');
+        return;
+      }
 
-    if (!settings.controlCol || !settings.roleCol || !settings.uidCol || settings.operationCols.length === 0) {
-      alert('Пожалуйста, укажите все необходимые столбцы');
-      return;
-    }
+      if (!settings.controlCol || !settings.roleCol || !settings.uidCol || settings.operationCols.length === 0) {
+        alert('Пожалуйста, укажите все необходимые столбцы');
+        return;
+      }
 
-    const requestParams: AnalysisRequest = {
-      control_col: settings.controlCol,
-      operation_cols: settings.operationCols,
-      role_col: settings.roleCol,
-      uid_col: settings.uidCol,
-      replacements: replacements.filter(rep => rep.old.trim() && rep.new.trim())
+      const requestParams: AnalysisRequest = {
+        control_col: settings.controlCol,
+        operation_cols: settings.operationCols,
+        role_col: settings.roleCol,
+        uid_col: settings.uidCol,
+        replacements: replacements.filter(rep => rep.old.trim() && rep.new.trim())
+      };
+
+      try {
+        // ПЕРЕДАЕМ РЕАЛЬНЫЕ ФАЙЛЫ В analyzeData
+        const result = await analyzeData(surveyFile, rolesFile, requestParams);
+        setAnalysisData(result);
+      } catch (error) {
+        console.error('Analysis error:', error);
+      }
     };
-
-    try {
-      const result = await analyzeData(requestParams);
-      setAnalysisData(result);
-    } catch (error) {
-      console.error('Analysis error:', error);
-    }
-  };
 
   const handleProcess = async () => {
     if (!analysisData) return;
